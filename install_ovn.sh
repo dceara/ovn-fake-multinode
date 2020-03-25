@@ -18,6 +18,8 @@ set -o errexit
 use_ovn_rpm=$1
 extra_optimize=$2
 
+. $HOME/.cargo/env
+
 if [ "$extra_optimize" = "yes" ]; then
     cflags='-g -march=native -O3 -fno-omit-frame-pointer'
 else
@@ -42,6 +44,7 @@ else
     ./boot.sh
     ./configure --localstatedir="/var" --sysconfdir="/etc" --prefix="/usr" \
     --enable-ssl --with-ovs-source=/ovs/ --with-ovs-build=/ovs/ \
+    --with-ddlog=/bin/ddlog-dir/lib/
     CFLAGS="${cflags}"
     make -j$(($(nproc) + 1)) V=0
     make install

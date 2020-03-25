@@ -65,7 +65,8 @@ RUN dnf -y update && dnf -y install\
  dhclient\
  which\
  fping\
- perf
+ perf\
+ curl
 
 #RUN dnf install @'Development Tools' -y
 RUN dnf -y install automake make gcc autoconf openssl-devel \
@@ -89,6 +90,7 @@ RUN systemctl enable dind-setup.service
 
 # Generate variation of dhclient-script that we can use for fake vm namespaces
 RUN mkdir -pv /bin
+
 COPY fedora/cinc/generate_dhclient_script_for_fullstack.sh /tmp/generate_dhclient_script_for_fullstack.sh
 RUN /tmp/generate_dhclient_script_for_fullstack.sh /
 RUN dnf -y remove which
