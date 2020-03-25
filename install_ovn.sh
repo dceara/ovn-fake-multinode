@@ -46,7 +46,7 @@ else
     --enable-ssl --with-ovs-source=/ovs/ --with-ovs-build=/ovs/ \
     --with-ddlog=/bin/ddlog-dir/lib/
     CFLAGS="${cflags}"
-    make -j$(($(nproc) + 1)) V=0
+    make V=0
     make install
 fi
 
