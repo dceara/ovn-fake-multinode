@@ -331,6 +331,7 @@ function start-db-cluster() {
                   --ovn-northd-ssl-ca-cert=${SSL_CERTS_PATH}/pki/switchca/cacert.pem"
     fi
 
+   
     central_1_ip=$(cat _ovn_central_1)
     central_2_ip=$(cat _ovn_central_2)
     central_3_ip=$(cat _ovn_central_3)
@@ -433,7 +434,10 @@ function start() {
             start-db-cluster
             central=${CENTRAL_NAME}-1
         else
-            ${RUNC_CMD} exec ${CENTRAL_NAME} ${OVNCTL_PATH} start_northd
+            ${RUNC_CMD} exec ${CENTRAL_NAME} ${OVNCTL_PATH} start_northd \
+                --ovn-nb-log="-vconsole:off -vfile:dbg" \
+                --ovn-sb-log="-vconsole:off -vfile:dbg" \
+                --ovn-northd-log="-vconsole:emer -vsyslog:err -vfile:dbg"
             sleep 2
         fi
 
