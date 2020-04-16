@@ -345,7 +345,7 @@ function start-db-cluster() {
     ${RUNC_CMD} exec ${CENTRAL_NAME}-1 ${OVNCTL_PATH}  \
     --ovn-northd-nb-db=${REMOTE_PROT}:170.168.0.2:6641,${REMOTE_PROT}:170.168.0.3:6641,${REMOTE_PROT}:170.168.0.4:6641 \
     --ovn-northd-sb-db=${REMOTE_PROT}:170.168.0.2:6642,${REMOTE_PROT}:170.168.0.3:6642,${REMOTE_PROT}:170.168.0.4:6642 --ovn-manage-ovsdb=no \
-    $SSL_ARGS start_northd
+    $SSL_ARGS start_northd --ovn-northd-ddlog=yes
 }
 
 function start() {
@@ -413,7 +413,7 @@ function start() {
             start-db-cluster
             central=${CENTRAL_NAME}-1
         else
-            ${RUNC_CMD} exec ${CENTRAL_NAME} ${OVNCTL_PATH} start_northd
+            ${RUNC_CMD} exec ${CENTRAL_NAME} ${OVNCTL_PATH} start_northd --ovn-northd-ddlog=yes
             sleep 2
         fi
 
