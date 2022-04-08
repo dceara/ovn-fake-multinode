@@ -4,6 +4,8 @@
 podman exec -it ovn-central ovn-nbctl show > nb_show
 podman exec -it ovn-central ovn-sbctl show > sb_show
 
+grep foo nb_show
+
 grep "(public)" nb_show
 grep "(sw0)" nb_show
 grep "(sw1)" nb_show
