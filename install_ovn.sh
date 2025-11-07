@@ -24,6 +24,32 @@ extra_optimize=$3
 # "global" packages.
 export PIP_BREAK_SYSTEM_PACKAGES=1
 
+function install_dpdk()
+{
+    local DPDK_INSTALL_DIR="$(pwd)/dpdk-dir"
+    local VERSION_FILE="${DPDK_INSTALL_DIR}/cached-version"
+    local DPDK_PC=$(find $DPDK_INSTALL_DIR -type f -name libdpdk-libs.pc)
+
+    # Export the following path for pkg-config to find the .pc file.
+    export PKG_CONFIG_PATH="$(dirname $DPDK_PC):$PKG_CONFIG_PATH"
+
+    if [ ! -f "${VERSION_FILE}" ]; then
+        echo "Could not find DPDK in $DPDK_INSTALL_DIR"
+        return 1
+    fi
+
+    # As we build inside a container we need to update the prefix.
+    sed -i -E "s|^prefix=.*|prefix=${DPDK_INSTALL_DIR}|" $DPDK_PC
+
+    # Update the library paths.
+    sudo ldconfig
+    echo "Found cached DPDK $(cat ${VERSION_FILE}) build in $DPDK_INSTALL_DIR"
+}
+
+pushd /workspace
+install_dpdk
+popd
+
 if [ -n "$OVN_CFLAGS" ]; then
     cflags="$OVN_CFLAGS"
 elif [ "$extra_optimize" = "yes" ]; then
@@ -46,7 +72,7 @@ else
     cd /ovs
     ./boot.sh
     ./configure --localstatedir="/var" --sysconfdir="/etc" --prefix="/usr" \
-        --enable-ssl --disable-libcapng --enable-Werror CFLAGS="${cflags}"
+        --enable-ssl --disable-libcapng --with-dpdk=static --enable-Werror CFLAGS="${cflags}"
     make -j$(($(nproc) + 1)) V=0
     make install
     cp ./ovsdb/_server.ovsschema /root/ovsdb-etcd/schemas/

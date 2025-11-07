@@ -26,6 +26,7 @@ dnf install -y --skip-broken \
   fping \
   frr \
   gcc \
+  gcc-c++ \
   gettext-devel \
   git \
   glibc-langpack-en \
@@ -44,6 +45,7 @@ dnf install -y --skip-broken \
   net-tools.x86_64 \
   ninja-build \
   nmap \
+  numactl-devel \
   openssh-clients \
   openssh-server \
   openssl \

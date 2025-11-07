@@ -23,6 +23,18 @@ COPY run_ovsdb_etcd.sh /run_ovsdb_etcd.sh
 COPY run_ovsdb_etcd_sb.sh /run_ovsdb_etcd_sb.sh
 COPY run_ovsdb_etcd_nb.sh /run_ovsdb_etcd_nb.sh
 
+RUN mkdir /workspace
+WORKDIR /workspace
+COPY /ovn/utilities/containers/openbfdd.patch /tmp/openbfdd.patch
+COPY /ovn/utilities/containers/py-requirements.txt /tmp/py-requirements.txt
+RUN /ovn/utilities/containers/prepare.sh
+#RUN ln -s /ovn /workspace/ovn
+#RUN ln -s /workspace/dpdk-dir /workspace/ovn/dpdk-dir
+#WORKDIR /workspace/ovn
+#RUN DPDK=dpdk CC=gcc /ovn/.ci/linux-build.sh
+
+WORKDIR /
+
 RUN /install_ovn.sh $USE_OVN_RPMS $USE_OVN_DEBS $EXTRA_OPTIMIZE
 RUN /install_utils_from_sources.sh $INSTALL_UTILS_FROM_SOURCES
 RUN /install_ovsdb_etcd.sh

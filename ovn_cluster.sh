@@ -722,7 +722,11 @@ function start() {
             if [ "$ENABLE_SSL" == "yes" ]; then
                 SSL_ARGS="--ovn-controller-ssl-key=${SSL_CERTS_PATH}/ovn-privkey.pem --ovn-controller-ssl-cert=${SSL_CERTS_PATH}/ovn-cert.pem --ovn-controller-ssl-ca-cert=${SSL_CERTS_PATH}/pki/switchca/cacert.pem"
             fi
+            ${RUNC_CMD} exec ${name} sudo bash -c "echo 2048 > /sys/kernel/mm/hugepages/hugepages-2048kB/nr_hugepages"
+            ${RUNC_CMD} exec ${name} sudo mkdir /mnt/huge
+            ${RUNC_CMD} exec ${name} sudo mount -t hugetlbfs nodev /mnt/huge
             ${RUNC_CMD} exec ${name} /usr/share/openvswitch/scripts/ovs-ctl start --system-id=${name}
+            ${RUNC_CMD} exec ${name} ovs-vsctl set Open_vSwitch . other_config:dpdk-init=true other_config:dpdk-extra="--log-level=pmd.*:error --no-pci"
             ${RUNC_CMD} exec ${name} ${OVNCTL_PATH} start_controller ${SSL_ARGS}
         done
     fi
@@ -732,7 +736,9 @@ function start() {
         if [ "$ENABLE_SSL" == "yes" ]; then
             SSL_ARGS="--ovn-controller-ssl-key=${SSL_CERTS_PATH}/ovn-privkey.pem --ovn-controller-ssl-cert=${SSL_CERTS_PATH}/ovn-cert.pem --ovn-controller-ssl-ca-cert=${SSL_CERTS_PATH}/pki/switchca/cacert.pem"
         fi
+        ${RUNC_CMD} exec ${name} sudo bash -c "echo 2048 > /sys/kernel/mm/hugepages/hugepages-2048kB/nr_hugepages"
         ${RUNC_CMD} exec ${name} /usr/share/openvswitch/scripts/ovs-ctl start --system-id=${name}
+        ${RUNC_CMD} exec ${name} ovs-vsctl set Open_vSwitch . other_config:dpdk-init=true other_config:dpdk-extra="--log-level=pmd.*:error --no-pci"
         ${RUNC_CMD} exec ${name} ${OVNCTL_PATH} start_controller ${SSL_ARGS}
     done
 
@@ -862,14 +868,16 @@ create_fake_vm() {
     ipv6_addr=\$8
     ipv6_gw=\$9
     ip netns add \$name
-    ip link add \$name-p type veth peer name \$name
+
+    ovs-vsctl add-port br-int ovs-\$name-p -- \
+             set interface ovs-\$name-p external-ids:iface-id="\$iface_id" -- \
+             set interface ovs-\$name-p type=dpdk -- \
+             set interface ovs-\$name-p options:n_rxq=3 -- \
+             set interface ovs-\$name-p options:dpdk-devargs=net_tap\$name-p,iface=\$name
+
     ip link set \$name netns \$name
     ip netns exec \$name ip link set lo up
-    ip link set \$name-p up
 
-    ovs-vsctl \
-      -- add-port br-int \$name-p \
-      -- set Interface \$name-p external_ids:iface-id=\$iface_id
     ip netns exec \$name ip link set lo up
     [ -n "\$mac" ] && ip netns exec \$name ip link set \$name address \$mac
     ip netns exec \$name ip link set \$name mtu \$mtu
@@ -889,6 +897,7 @@ create_fake_vm() {
 create_fake_vm \$@
 
 EOF
+
     chmod 0755 ${FAKENODE_MNT_DIR}/create_fake_vm.sh
 
     echo "Creating a fake VM in "${CHASSIS_NAMES[$((az-1))]}" for logical port - sw0$az-port1"
