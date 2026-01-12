@@ -489,6 +489,12 @@ function start-db-cluster() {
     --db-nb-cluster-remote-proto=${REMOTE_PROT} --db-sb-cluster-remote-proto=${REMOTE_PROT} \
     $SSL_ARGS start_ovsdb
 
+    ${RUNC_CMD} exec ${CENTRAL} ovn-nbctl --no-leader-only set-connection p${REMOTE_PROT}:6641
+    ${RUNC_CMD} exec ${CENTRAL} ovn-nbctl --no-leader-only set connection . inactivity_probe=180000
+
+    ${RUNC_CMD} exec ${CENTRAL} ovn-sbctl --no-leader-only set-connection p${REMOTE_PROT}:6642
+    ${RUNC_CMD} exec ${CENTRAL} ovn-sbctl --no-leader-only set connection . inactivity_probe=180000
+
     # This can be improved.
     sleep 3
 
