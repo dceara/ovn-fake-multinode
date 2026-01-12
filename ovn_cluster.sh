@@ -681,20 +681,20 @@ function start() {
             else
                 ${RUNC_CMD} exec ${CENTRAL} ${OVNCTL_PATH} start_northd
                 sleep 2
-
-                if [ "$ENABLE_SSL" == "yes" ]; then
-                    ${RUNC_CMD} exec ${CENTRAL} ovn-nbctl set-ssl ${SSL_CERTS_PATH}/ovn-privkey.pem  ${SSL_CERTS_PATH}/ovn-cert.pem ${SSL_CERTS_PATH}/pki/switchca/cacert.pem
-                    ${RUNC_CMD} exec ${CENTRAL} ovn-sbctl set-ssl ${SSL_CERTS_PATH}/ovn-privkey.pem  ${SSL_CERTS_PATH}/ovn-cert.pem ${SSL_CERTS_PATH}/pki/switchca/cacert.pem
-                fi
-                ${RUNC_CMD} exec ${CENTRAL} ovn-nbctl set-connection p${REMOTE_PROT}:6641
-                ${RUNC_CMD} exec ${CENTRAL} ovn-nbctl set connection . inactivity_probe=180000
-
-                ${RUNC_CMD} exec ${CENTRAL} ovn-sbctl set-connection p${REMOTE_PROT}:6642
-                ${RUNC_CMD} exec ${CENTRAL} ovn-sbctl set connection . inactivity_probe=180000
             fi
+
+            if [ "$ENABLE_SSL" == "yes" ]; then
+                ${RUNC_CMD} exec ${CENTRAL} ovn-nbctl --no-leader-only set-ssl ${SSL_CERTS_PATH}/ovn-privkey.pem  ${SSL_CERTS_PATH}/ovn-cert.pem ${SSL_CERTS_PATH}/pki/switchca/cacert.pem
+                ${RUNC_CMD} exec ${CENTRAL} ovn-sbctl --no-leader-only set-ssl ${SSL_CERTS_PATH}/ovn-privkey.pem  ${SSL_CERTS_PATH}/ovn-cert.pem ${SSL_CERTS_PATH}/pki/switchca/cacert.pem
+            fi
+            ${RUNC_CMD} exec ${CENTRAL} ovn-nbctl --no-leader-only set-connection p${REMOTE_PROT}:6641
+            ${RUNC_CMD} exec ${CENTRAL} ovn-nbctl --no-leader-only set connection . inactivity_probe=180000
 
             ${RUNC_CMD} exec ${CENTRAL} ovn-nbctl --no-leader-only set NB_Global . name=${CENTRAL} \
                 options:ic-route-adv=true options:ic-route-learn=true
+
+            ${RUNC_CMD} exec ${CENTRAL} ovn-sbctl --no-leader-only set-connection p${REMOTE_PROT}:6642
+            ${RUNC_CMD} exec ${CENTRAL} ovn-sbctl --no-leader-only set connection . inactivity_probe=180000
         done
 
         # start ovn-ic dbs
