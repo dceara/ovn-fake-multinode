@@ -1,8 +1,6 @@
 name: CI
 on:
   push:
-    branches:
-      - main
   pull_request:
 
 jobs:
@@ -42,7 +40,7 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt update
-          sudo apt install podman openvswitch-switch
+          sudo apt install openvswitch-switch
       - name: Build images
         run: sudo -E ./ovn_cluster.sh build
       - name: Start basic cluster
